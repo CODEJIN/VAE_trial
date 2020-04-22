@@ -82,7 +82,7 @@ class VAE:
             )
         self.checkpoint = tf.train.Checkpoint(optimizer= self.optimizer, model= self.model_Dict['Train'])
 
-    def Train_Step(self, mnists):
+    def Train_Step(self, mnists):        
         with tf.GradientTape() as tape:
             loss = self.model_Dict['Train'](mnists)
         
@@ -124,10 +124,10 @@ class VAE:
            
         def Run_Inference():
             latents  = None
-            if hp_Dict['Latent_Size']:
+            if hp_Dict['Latent_Size'] == 2:
                 latents = []
-                for x in np.arange(-.5, .5 + 0.1, 0.1):
-                    for y in np.arange(-.5, .5 + 0.1, 0.1):
+                for x in np.arange(-2.5, 2.5 + 0.25, 0.25):
+                    for y in np.arange(-2.5, 2.5 + 0.25, 0.25):
                         latents.append(np.array([x,y], dtype= np.float32))
 
                 latents = np.stack(latents, axis= 0)
@@ -163,9 +163,9 @@ class VAE:
 
             start_Time = time.time()
 
-    def Inference(self, latents= None, label= None):
-        if latents is None:
-            latents = np.random.normal((1, hp_Dict['Latent_Size']))
+    def Inference(self, latents= None, label= None):        
+        if latents is None:            
+            latents = np.random.normal(size=(1, hp_Dict['Latent_Size']))
 
         mnists = self.Inference_Step(latents= latents)
 
@@ -182,7 +182,7 @@ class VAE:
 
         mnists = np.reshape(mnists, [batch_Size, 28, 28])
 
-        plt.figure(figsize=(10, 10))
+        fig = plt.figure(figsize=(10, 10))
         new_Gridspec = gridspec.GridSpec(axis_Count, axis_Count)
         new_Gridspec.update(wspace=0.025, hspace=0.025)
         for index in range(batch_Size):
@@ -190,13 +190,13 @@ class VAE:
             ax = plt.subplot(new_Gridspec[index])
             ax.set_xticklabels([])
             ax.set_yticklabels([])
-            plt.imshow(mnist)
+            plt.imshow(mnist, cmap='gray')
 
-        plt.tight_layout()
+        plt.tight_layout(fig)
         plt.savefig(
             os.path.join(hp_Dict['Inference_Path'], '{}.PNG'.format(label)).replace("\\", "/")
             )
-        plt.close()
+        plt.close(fig)
 
 
 if __name__ == "__main__":

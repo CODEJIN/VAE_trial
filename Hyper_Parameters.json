@@ -23,8 +23,7 @@
     },
 
     "Train": {
-        "Epoch": 100,
-        "Batch_Size": 64,
+        "Batch_Size": 1024,
         "Learning_Rate": 1e-3,
         "Max_Pattern_Queue": 50,
         "ADAM": {
@@ -36,11 +35,11 @@
         "Inference_Timing": 1000,
         "Checkpoint_Save_Timing": 1000,
 
-        "Initial_Inference": true        
+        "Initial_Inference": true
     },
 
     "Use_Mixed_Precision": false,
-    "Inference_Path": "./PN.Results/Inference",
-    "Checkpoint_Path": "./PN.Results/Checkpoint",
+    "Inference_Path": "./Results/Inference",
+    "Checkpoint_Path": "./Results/Checkpoint",
     "Device": "0"
 }

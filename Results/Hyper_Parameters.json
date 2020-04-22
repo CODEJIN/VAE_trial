@@ -1,0 +1,40 @@
+{
+    "Latent_Size": 2,
+    "Encoder": {
+        "Hidden1": {
+            "Size": 500,
+            "Dropout_Rate": 0.5
+        },
+        "Hidden2": {
+            "Size": 500,
+            "Dropout_Rate": 0.5
+        }
+    },
+    "Decoder": {
+        "Hidden1": {
+            "Size": 500,
+            "Dropout_Rate": 0.5
+        },
+        "Hidden2": {
+            "Size": 500,
+            "Dropout_Rate": 0.5
+        }
+    },
+    "Train": {
+        "Batch_Size": 1024,
+        "Learning_Rate": 0.001,
+        "Max_Pattern_Queue": 50,
+        "ADAM": {
+            "Beta1": 0.9,
+            "Beta2": 0.999,
+            "Epsilon": 1e-07
+        },
+        "Inference_Timing": 1000,
+        "Checkpoint_Save_Timing": 1000,
+        "Initial_Inference": true
+    },
+    "Use_Mixed_Precision": false,
+    "Inference_Path": "./PN.Results/Inference",
+    "Checkpoint_Path": "./PN.Results/Checkpoint",
+    "Device": "0"
+}
