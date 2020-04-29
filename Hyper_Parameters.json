@@ -1,23 +1,27 @@
 {
-    "Latent_Size": 2,
+    "Latent_Size": 10,
 
     "Encoder": {
+        "Label": {
+            "Nums": 10,
+            "Embedding": 30
+        },
         "Hidden1": {
-            "Size": 500,
+            "Size": 128,
             "Dropout_Rate": 0.5
         },
         "Hidden2": {
-            "Size": 500,
+            "Size": 128,
             "Dropout_Rate": 0.5
         }
     },
     "Decoder": {
         "Hidden1": {
-            "Size": 500,
+            "Size": 128,
             "Dropout_Rate": 0.5
         },
         "Hidden2": {
-            "Size": 500,
+            "Size": 128,
             "Dropout_Rate": 0.5
         }
     },

@@ -43,17 +43,21 @@ class VAE:
             shape= [hp_Dict['Latent_Size'],],    #MNIST
             dtype= tf.float32
             )
+        input_Dict['Label'] = tf.keras.layers.Input(
+            shape= [],    #MNIST
+            dtype= tf.int32
+            )
 
         layer_Dict['Encoder'] = Encoder()
         layer_Dict['Latent'] = Latent()
         layer_Dict['Decoder'] = Decoder()
         layer_Dict['Loss'] = Loss()
 
-        tensor_Dict['Encoder_Mean'], tensor_Dict['Encoder_Std'] = layer_Dict['Encoder'](input_Dict['MNIST'])
+        tensor_Dict['Encoder_Mean'], tensor_Dict['Encoder_Std'] = layer_Dict['Encoder'](inputs= [input_Dict['MNIST'], input_Dict['Label']])
         tensor_Dict['Latent'] = layer_Dict['Latent']([tensor_Dict['Encoder_Mean'], tensor_Dict['Encoder_Std']])
-        tensor_Dict['Reconstruct'] = layer_Dict['Decoder'](inputs= tensor_Dict['Latent'])
+        tensor_Dict['Reconstruct'] = layer_Dict['Decoder'](inputs= [tensor_Dict['Latent'], input_Dict['Label']])
+        tensor_Dict['Inference'] = layer_Dict['Decoder'](inputs= [input_Dict['Latent'], input_Dict['Label']])
 
-        tensor_Dict['Inference'] = layer_Dict['Decoder'](inputs= input_Dict['Latent'])
         tensor_Dict['Loss'] = layer_Dict['Loss']([
             input_Dict['MNIST'],
             tensor_Dict['Reconstruct'],
@@ -63,11 +67,11 @@ class VAE:
 
         self.model_Dict = {}
         self.model_Dict['Train'] = tf.keras.Model(
-            inputs= input_Dict['MNIST'],
+            inputs= [input_Dict['MNIST'], input_Dict['Label']],
             outputs= tensor_Dict['Loss']
             )
         self.model_Dict['Inference'] = tf.keras.Model(
-            inputs= input_Dict['Latent'],
+            inputs= [input_Dict['Latent'], input_Dict['Label']],
             outputs= tensor_Dict['Inference']
             )
 
@@ -82,17 +86,17 @@ class VAE:
             )
         self.checkpoint = tf.train.Checkpoint(optimizer= self.optimizer, model= self.model_Dict['Train'])
 
-    def Train_Step(self, mnists):        
+    def Train_Step(self, mnists, labels):        
         with tf.GradientTape() as tape:
-            loss = self.model_Dict['Train'](mnists)
+            loss = self.model_Dict['Train'](inputs=[mnists, labels], training= True)
         
         gradients = tape.gradient(loss, self.model_Dict['Train'].trainable_variables)
         self.optimizer.apply_gradients(zip(gradients, self.model_Dict['Train'].trainable_variables))
         
         return loss
 
-    def Inference_Step(self, latents):
-        mnists = self.model_Dict['Inference'](latents)
+    def Inference_Step(self, latents, labels):
+        mnists = self.model_Dict['Inference'](inputs=[latents, labels], training= False)
 
         return mnists
 
@@ -123,16 +127,16 @@ class VAE:
                 )
            
         def Run_Inference():
-            latents  = None
-            if hp_Dict['Latent_Size'] == 2:
-                latents = []
-                for x in np.arange(-2.5, 2.5 + 0.25, 0.25):
-                    for y in np.arange(-2.5, 2.5 + 0.25, 0.25):
-                        latents.append(np.array([x,y], dtype= np.float32))
-
-                latents = np.stack(latents, axis= 0)
+            latents = None
+            labels = np.tile(np.arange(0, 10), 10).astype(np.int32)
+            # if hp_Dict['Latent_Size'] == 2:
+            #     latents = []                
+            #     for x in np.arange(-2.5, 2.5 + 0.25, 0.25):
+            #         for y in np.arange(-2.5, 2.5 + 0.25, 0.25):
+            #             latents.append(np.array([x,y], dtype= np.float32))
+            #     latents = np.stack(latents, axis= 0)
             
-            self.Inference(latents= latents)
+            self.Inference(latents= latents, labels= labels)
 
         if hp_Dict['Train']['Initial_Inference']:
             Run_Inference()
@@ -163,18 +167,27 @@ class VAE:
 
             start_Time = time.time()
 
-    def Inference(self, latents= None, label= None):        
-        if latents is None:            
-            latents = np.random.normal(size=(1, hp_Dict['Latent_Size']))
+    def Inference(self, latents= None, labels= None, file_Label= None):        
+        if latents is None and labels is None:
+            batch_Size = 1
+        elif not latents is None:
+            batch_Size = latents.shape[0]
+        elif not labels is None:
+            batch_Size = labels.shape[0]
 
-        mnists = self.Inference_Step(latents= latents)
+        if latents is None:
+            latents = np.random.normal(size=(batch_Size, hp_Dict['Latent_Size']))
+        if labels is None:
+            labels = np.random.randint(0, hp_Dict['Encoder']['Label']['Nums'], size= (batch_Size,), dtype= np.int32)
+
+        mnists = self.Inference_Step(latents= latents, labels= labels)
 
         self.Export_Inference(
             mnists= mnists,
-            label= None or datetime.now().strftime("%Y%m%d.%H%M%S")
+            file_Label= None or datetime.now().strftime("%Y%m%d.%H%M%S")
             )
 
-    def Export_Inference(self, mnists, label):
+    def Export_Inference(self, mnists, file_Label):
         os.makedirs(hp_Dict['Inference_Path'], exist_ok= True)
 
         batch_Size = mnists.shape[0]
@@ -194,7 +207,7 @@ class VAE:
 
         plt.tight_layout(fig)
         plt.savefig(
-            os.path.join(hp_Dict['Inference_Path'], '{}.PNG'.format(label)).replace("\\", "/")
+            os.path.join(hp_Dict['Inference_Path'], '{}.PNG'.format(file_Label)).replace("\\", "/")
             )
         plt.close(fig)
 

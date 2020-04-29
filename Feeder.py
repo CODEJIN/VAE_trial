@@ -19,11 +19,13 @@ class Feeder:
             pattern_Generate_Thread.start()
 
     def Pattern_Generate(self):
-        patterns = tf.keras.datasets.mnist.load_data()[0][0]
-        patterns = patterns.astype(np.float32) / 256.0
+        pattern_mnists = tf.keras.datasets.mnist.load_data()[0][0]        
+        pattern_mnists = pattern_mnists.astype(np.float32) / 256.0
+
+        pattern_labels = tf.keras.datasets.mnist.load_data()[0][1]
 
         while True:
-            index_List = list(range(patterns.shape[0]))
+            index_List = list(range(pattern_mnists.shape[0]))
             shuffle(index_List)
             index_Batch_List = [
                 index_List[x:x+hp_Dict['Train']['Batch_Size']]
@@ -36,11 +38,13 @@ class Feeder:
                     time.sleep(0.1)
                     continue
 
-                mnists = patterns[index_Batch_List[batch_Index]]
+                mnists = pattern_mnists[index_Batch_List[batch_Index]]
                 mnists = np.reshape(mnists, (mnists.shape[0], -1))
+                labels = pattern_labels[index_Batch_List[batch_Index]]
 
                 self.pattern_Queue.append({
-                    'mnists': mnists
+                    'mnists': mnists,
+                    'labels': labels
                     })
 
                 batch_Index += 1
