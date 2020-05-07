@@ -128,14 +128,18 @@ class VAE:
            
         def Run_Inference():
             latents = None
+            labels = None
+
             labels = np.tile(np.arange(0, 10), 10).astype(np.int32)
+
             # if hp_Dict['Latent_Size'] == 2:
             #     latents = []                
-            #     for x in np.arange(-2.5, 2.5 + 0.25, 0.25):
-            #         for y in np.arange(-2.5, 2.5 + 0.25, 0.25):
+            #     for x in np.arange(-1.0, 1.0 + 0.1, 0.1):
+            #         for y in np.arange(-1.0, 1.0 + 0.1, 0.1):
             #             latents.append(np.array([x,y], dtype= np.float32))
             #     latents = np.stack(latents, axis= 0)
-            
+            #     labels = np.zeros(shape=(latents.shape[0]), dtype= np.int32)  + 5
+                        
             self.Inference(latents= latents, labels= labels)
 
         if hp_Dict['Train']['Initial_Inference']:

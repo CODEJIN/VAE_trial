@@ -12,6 +12,12 @@ class Encoder(tf.keras.layers.Layer):
             input_dim= hp_Dict['Encoder']['Label']['Nums'],
             output_dim= hp_Dict['Encoder']['Label']['Embedding']
             )
+        # self.layer_Dict['Label_Embedding'] = tf.keras.layers.Lambda(
+        #     lambda x: tf.one_hot(
+        #         indices= x,
+        #         depth= hp_Dict['Encoder']['Label']['Nums']
+        #         )            
+        #     )
 
         self.layer_Dict['Concat'] = tf.keras.layers.Lambda(
             lambda x: tf.concat(x, axis= -1)
@@ -60,6 +66,12 @@ class Decoder(tf.keras.layers.Layer):
             input_dim= hp_Dict['Encoder']['Label']['Nums'],
             output_dim= hp_Dict['Encoder']['Label']['Embedding']
             )
+        # self.layer_Dict['Label_Embedding'] = tf.keras.layers.Lambda(
+        #     lambda x: tf.one_hot(
+        #         indices= x,
+        #         depth= hp_Dict['Encoder']['Label']['Nums']
+        #         )            
+        #     )
 
         self.layer_Dict['Concat'] = tf.keras.layers.Lambda(
             lambda x: tf.concat(x, axis= -1)            
@@ -83,6 +95,9 @@ class Decoder(tf.keras.layers.Layer):
         self.layer_Dict['Decoding'].add(tf.keras.layers.Dense(
             units= 28 ** 2,
             ))
+        self.layer_Dict['Decoding'].add(tf.keras.layers.Lambda(
+            lambda x: tf.clip_by_value(x, 1e-6, 1 - 1e-6),
+            ))
 
     def call(self, inputs):
         latents, labels = inputs
@@ -97,14 +112,13 @@ class Loss(tf.keras.layers.Layer):
     def call(self, inputs):
         labels, logits, encoder_Mean, encoder_Std = inputs
 
-        marginal_Likelihood = tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(
-            labels= labels,
-            logits= logits
-            ))
-        kl_Divergence = -0.5 * tf.reduce_sum(
-            1 + encoder_Std - encoder_Mean ** 2 - tf.exp(encoder_Std)
-            )
+        marginal_Likelihood = -tf.reduce_sum(tf.nn.sigmoid_cross_entropy_with_logits(labels= labels, logits= logits), axis= -1)        
+        kl_Divergence = 0.5 * tf.reduce_sum(encoder_Mean ** 2 + encoder_Std ** 2 - tf.math.log(encoder_Std ** 2 + 1e-8) - 1.0, axis= -1)
 
-        elbo_Loss = marginal_Likelihood + kl_Divergence
+        marginal_Likelihood = tf.reduce_mean(marginal_Likelihood)
+        kl_Divergence = tf.reduce_mean(kl_Divergence)
+        
+        elbo = marginal_Likelihood - kl_Divergence
+        loss = -elbo
 
-        return elbo_Loss
+        return loss

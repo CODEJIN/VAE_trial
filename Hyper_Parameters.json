@@ -1,5 +1,5 @@
 {
-    "Latent_Size": 10,
+    "Latent_Size": 2,
 
     "Encoder": {
         "Label": {
@@ -8,26 +8,26 @@
         },
         "Hidden1": {
             "Size": 128,
-            "Dropout_Rate": 0.5
+            "Dropout_Rate": 0.2
         },
         "Hidden2": {
             "Size": 128,
-            "Dropout_Rate": 0.5
+            "Dropout_Rate": 0.2
         }
     },
     "Decoder": {
         "Hidden1": {
             "Size": 128,
-            "Dropout_Rate": 0.5
+            "Dropout_Rate": 0.2
         },
         "Hidden2": {
             "Size": 128,
-            "Dropout_Rate": 0.5
+            "Dropout_Rate": 0.2
         }
     },
 
     "Train": {
-        "Batch_Size": 1024,
+        "Batch_Size": 128,
         "Learning_Rate": 1e-3,
         "Max_Pattern_Queue": 50,
         "ADAM": {
@@ -45,5 +45,5 @@
     "Use_Mixed_Precision": false,
     "Inference_Path": "./Results/Inference",
     "Checkpoint_Path": "./Results/Checkpoint",
-    "Device": "0"
+    "Device": "-1"
 }
